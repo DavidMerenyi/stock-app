@@ -5,15 +5,38 @@ import timeseries from '@/assets/data/timeseries.json'
 import { MonoText } from './StyledText'
 import { useState } from 'react'
 import { point } from '@shopify/react-native-skia'
+import { useQuery, gql } from '@apollo/client'
+import { ActivityIndicator } from 'react-native'
 
-const Graph = () => {
-    const points: GraphPoint[] = timeseries.values.map((point) => ({
-        date: new Date(point.datetime),
+const query = gql`
+    query MyQuery($interval: String!, $symbol: String!) {
+    time_series(symbol: $symbol, interval: $interval) {
+        values {
+        close
+        datetime
+        }
+    }
+}`
+
+const Graph = ({ symbol }: { symbol: string }) => {
+    const [selectedPoint, setSelectedPoint] = useState<GraphPoint>()
+
+    const { data, loading, error } = useQuery(query, { variables: { symbol, interval: '1day' } })
+
+    if (loading) {
+        return <ActivityIndicator />
+    }
+
+    if (error) {
+        return <Text>Error</Text>
+    }
+
+    const points: GraphPoint[] = data.time_series.values.map((value) => ({
+        date: new Date(value.datetime),
         value: Number
-            .parseFloat(point.close),
+            .parseFloat(value.close),
     }))
 
-    const [selectedPoint, setSelectedPoint] = useState<GraphPoint>(points[points.length - 1])
 
     const onPointSelected = (point: GraphPoint) => {
         setSelectedPoint(point)
