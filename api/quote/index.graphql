@@ -26,7 +26,7 @@ type Quote {
   previous_close: Float
   symbol: String
   timestamp: Int
-  volume: Date
+  volume: Date  
 }
 
 type Quotes {
